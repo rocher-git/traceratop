@@ -1,0 +1,1 @@
+emcc project\src\main.cpp --js-library project\index.js -s WASM=1 -s BUILD_AS_WORKER=1 -o build\worker.js -o3

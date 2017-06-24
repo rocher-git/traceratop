@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Traceratop</title>
+    <style>
+		.traceratop {
+			padding: 0;
+			margin: 0;
+			border: 0;
+			display: block;
+			font-weight: normal;
+			position: absolute;
+		}
+		body.traceratop {
+			width: 100vw;
+			height: 100vh;
+			background: rgb(30,30,30);
+		}
+		h1.traceratop,
+		h2.traceratop {
+			top: 85px;
+			right: calc(50% - 420px);
+			font-size: 13.3333px;
+			font-family: arial;
+			color: rgba(255,255,255,0.2);
+		}
+		h2.traceratop {
+			top: 720px;
+			left: calc(50% - 420px);
+		}
+		p.traceratop {
+			top: 745px;
+			left: calc(50% - 420px);
+			font-size: 13.3333px;
+			font-family: arial;
+			color: rgba(255,255,255,0.2);			
+			text-align: left;
+			line-height: 23px;
+		}
+		div.traceratop {
+			text-align: center;
+		}
+		div.traceratop.toolbar {
+			top: 620px;
+			left: calc(50% - 420px);
+			width: 840px;
+			height: 30px;
+			border: 0px none;
+			border-radius: 7px;
+			background-color: rgba(255,100,100,0.6);
+			position: absolute;
+		}
+		select.traceratop {
+			display: inline-block;
+			position: relative;
+			width: 170px;
+			height: 30px;
+			color: rgb(250,250,250);
+			background-color: rgba(0,0,0,0.1);
+			outline: none;
+			cursor: pointer;
+			font-size: 13.3333px;
+		}
+		select.traceratop option {
+			cursor: pointer;
+			outline: none;
+			background-color: rgb(148,65,65);
+			font-size: 13.3333px;
+		}
+		button.traceratop {
+		    background: rgba(0,0,0,0.1);
+			height: 30px;
+			width: 144px;
+			border: none;
+			cursor: pointer;
+			position: relative;
+			display: inline;
+			color: rgb(250,250,250);
+			outline: none;
+			font-size: 13.3333px;
+		}
+		canvas.traceratop {
+			top: 115px;
+			left: calc(50% - 420px);
+			width: 840px;
+			height: 500px;
+			background-color: darkblue,
+			cursor: grab;
+			cursor: -moz-grab;
+		    cursor: -webkit-grab;
+			border: 0px none;
+			border-radius: 7px;
+		}
+		canvas.traceratop:active {
+			cursor: grabbing;
+			cursor: -moz-grabging;
+		    cursor: -webkit-grabbing;
+		}
+		svg.traceratop {
+			top: 115px;
+			left: calc(50% - 420px);
+			pointer-events:none;
+			width: 840px;
+			height: 500px;
+			border: 0px none;
+			opacity: 0;
+			border-radius: 7px;
+			cursor: move; /* fallback if grab cursor is unsupported */
+			transform: scale(1.1,1.1);
+			-webkit-transition: opacity 0.5s, -webkit-transform 0.5s;
+			transition: opacity 0.25s, transform 0.25s;
+		}
+	    svg.traceratop.navigate {
+			transform: scale(1,1);
+			opacity: 1;
+			cursor: -webkit-grab;
+			-webkit-transition: opacity 0.5s, -webkit-transform 0.5s;
+			transition: opacity 0.25s, transform 0.25s;
+		}
+    </style>
+  </head>
+  <body class="traceratop">
+	<h1 class="traceratop">Traceratop - Simple C++ Path Tracer Running As WebAssembly</h1>
+	<canvas class="traceratop" id="main-canvas" oncontextmenu="event.preventDefault()"></canvas>
+	<svg class="traceratop" id="main-canvas-svg">
+		<circle cx="400" cy="250" r="200" stroke="rgba(255,0,0, 0.7)" stroke-width="1" fill="transparent" />
+	</svg>
+	<div class="traceratop toolbar">
+		<select class="traceratop" id="select-scene" style="text-indent: 10px;">
+			<option value="0">Scene: Lambertian</option>
+			<option value="1">Scene: Metal & Glass</option>
+			<option value="2">Scene: Checkmate</option>
+		</select>
+		<select class="traceratop" id="select-pixel-size">
+			<option value="1">Pixel Size: x1</option>
+			<option value="2">Pixel Size: x2</option>
+			<option value="4">Pixel Size: x4</option>
+			<option value="8">Pixel Size: x8</option>
+		</select>
+		<select class="traceratop" id="select-samples">
+			<option value="1">Samples Per Pixel: 1</option>
+			<option value="5">Samples Per Pixel: 5</option>
+			<option value="10">Samples Per Pixel: 10</option>
+			<option value="25">Samples Per Pixel: 25</option>
+			<option value="50">Samples Per Pixel: 50</option>
+			<option value="100">Samples Per Pixel: 100</option>
+			<option value="200">Samples Per Pixel: 200</option>
+			<option value="500">Samples Per Pixel: 500</option>
+			<option value="1000">Samples Per Pixel: 1000</option>
+		</select>
+		<select class="traceratop" id="select-bounces">
+			<option value="1">Max Ray Bounces: 1</option>
+			<option value="2">Max Ray Bounces: 2</option>
+			<option value="2">Max Ray Bounces: 5</option>
+			<option value="10">Max Ray Bounces: 10</option>
+			<option value="25">Max Ray Bounces: 25</option>
+			<option value="50">Max Ray Bounces: 50</option>
+			<option value="100">Max Ray Bounces: 100</option>
+			<option value="200">Max Ray Bounces: 200</option>
+			<option value="500">Max Ray Bounces: 500</option>
+			<option value="1000">Max Ray Bounces: 1000</option>/option>
+		</select>
+		<button class="traceratop" id="button-rerender">Re-Render</button>
+	</div>
+	<h2 class="traceratop"><u>Instructions</u><h2/>
+	<p class="traceratop">
+			Drag while pressing the left mouse button to rotate the view.<br>
+			Drag while pressing the right mouse button to pane the view.<br>
+			Use the mouse wheel to zoom the view.<br>
+			Use the toolbar controls to set the scene and quality vs peformance settings.
+			<br><br><br><br>
+	</p>
+	<script src='gl-matrix-min.js'></script>
+	<script src='camera.js'></script>
+	</script>
+	<script type='text/javascript'>
+	
+		// Initialize ui.
+		var sceneIndex = 0;
+		var pixelSize = 1;
+		var samplesPerPixel = 1;
+		var maxRayBounces = 1;
+
+		document.getElementById('select-samples').value = samplesPerPixel;
+		document.getElementById('select-bounces').value = maxRayBounces;
+		
+		// Initialize canvases.
+		var canvas = document.getElementById('main-canvas');
+		canvas.width = canvas.clientWidth;
+		canvas.height = canvas.clientHeight;
+		
+		var ctx = canvas.getContext('2d');
+		ctx.mozImageSmoothingEnabled = false;
+		ctx.webkitImageSmoothingEnabled = false;
+		ctx.msImageSmoothingEnabled = false;
+		ctx.imageSmoothingEnabled = false;
+
+		var offscreen = document.createElement("canvas");
+		offscreen.width = canvas.clientWidth / pixelSize;
+		offscreen.height = canvas.clientHeight / pixelSize;
+
+		var oxt = offscreen.getContext("2d");
+		oxt.mozImageSmoothingEnabled = false;
+		oxt.webkitImageSmoothingEnabled = false;
+		oxt.msImageSmoothingEnabled = false;
+		oxt.imageSmoothingEnabled = false;
+
+		offscreenData = oxt.createImageData(offscreen.width, offscreen.height);
+				
+		// Initialize help functions/
+		var log = function(text) {
+		
+			console.log('  ' + text);
+		}
+		
+		// Initialize camera.
+		var finaImage = false;
+		var cameraDirty = false;
+		var offscreenDirty = false;
+
+		var camera = new Camera(canvas, function() {
+			cameraDirty = true;
+		});
+
+		var onCameraUpdate = function() {
+			if (cameraDirty && finaImage) {
+			    cameraDirty = false;
+				rerender(false);
+			}
+			requestAnimationFrame(onCameraUpdate);
+		};
+		onCameraUpdate();
+		
+		var onOffscreenUpdate = function() {
+			if (offscreenDirty) {
+			    offscreenDirty = false;
+				oxt.putImageData(offscreenData, 0, 0);
+				ctx.drawImage(
+					offscreen,
+					0,
+					Math.floor(offscreen.height - offscreen.height / pixelSize),
+					Math.floor(offscreen.width / pixelSize),
+					Math.floor(offscreen.height / pixelSize),
+					0,
+					0,
+					canvas.width,
+					canvas.height
+					);
+			}
+			requestAnimationFrame(onOffscreenUpdate);
+		};
+		onOffscreenUpdate();
+
+
+		// Print Title.
+		log('Welcome to WebRay: Simple ray tracer done with WebAssambly\n');
+		log('Author: Federico Rocha\n');
+		log('----------------------------------------------------------\n\n');
+
+		var workers = [];
+		var workersCount = 16;
+		var workersReady = 0;
+	
+		var renderId = 0;
+		var rendersCompleted = 0;
+		var renderIniTime = performance.now();
+		var renderEndTime = renderIniTime;
+
+		// Load Render Workers.
+		for( var i = 0; i < workersCount; ++i){
+			workers[i] = new Worker('worker.js');
+			workers[i].onmessage = function (event) {
+				var data = event.data.data;
+				switch(event.data.id) {
+					case 'WORKER_READY':
+					log('Workers Ready: ' + format1Space(++workersReady) + '/' + workersCount + '\n');
+					break;
+
+					case 'SET_PIXELS':				
+					var pixels = event.data.pixels;
+					var workerId = event.data.workerId;
+					
+					var w = offscreen.width;
+					var h = offscreen.height;
+					var x = Math.floor(workerId % 4) * offscreen.width;
+					var y = Math.floor(workerId / 4) * offscreen.height;
+					var s = 1.0 / pixelSize;
+					
+					for (var i = 0; i < pixels.length; ++i) {
+					
+						var pixel = pixels[i];
+						
+						pixel.x = Math.floor(pixel.x * s);
+						pixel.y = Math.floor(pixel.y * s);
+
+						var index = 4 * (pixel.x + (h - pixel.y) * w);
+
+						offscreenData.data[index  ] = pixel.r;
+						offscreenData.data[index+1] = pixel.g;
+						offscreenData.data[index+2] = pixel.b;
+						offscreenData.data[index+3] = 255;
+					}
+					
+					offscreenDirty = true;
+
+					if (renderId !== event.data.renderId) {
+						break;
+					}
+					
+					if (pixels.length == 0) {
+						rendersCompleted++;
+						log('Worker id: ' + format1Space(workerId) + ' finished rendering\n');
+					} else {
+						render(workerId, renderId, sceneIndex, camera, pixelSize, samplesPerPixel, maxRayBounces);
+					}
+
+					finaImage = rendersCompleted == workersCount;
+					if (finaImage) {
+
+						renderEndTime = performance.now();
+
+						var deltaTime = renderEndTime - renderIniTime;
+						var minutes = Math.floor((deltaTime / (60 * 1000))) | 0x0;
+						var seconds = Math.floor(deltaTime / 1000 - minutes * 60) | 0x0;
+						var milliseconds = (deltaTime - minutes * (60 * 1000) - seconds * 1000) | 0x0;
+
+						log('\n  Image is fully rendered: ' + format1Space(minutes) + ':' + format1Zeros(seconds) + ':' + format3Zeros(milliseconds));
+						log('\n\n');
+					}
+
+					break;
+				}
+			}
+		}
+		
+		var sendMessage = function(workerIndex, message) {
+			if( workerIndex !== -1) {
+				workers[workerIndex].postMessage(message);
+			} else {
+				for (var i = 0; i < workersCount; ++i){
+					workers[i].postMessage(message);
+				}
+			}
+		}
+
+		var setWorkerId = function(workerIndex, i) {		
+			var parameters = new Int32Array([i]);
+			sendMessage(workerIndex, {
+				'funcName': 'SetWorkerId',
+				'callbackId': 1,
+				'data':	new Uint8Array(parameters.buffer)
+			});
+		}
+		
+		var setViewport = function(w, h) {		
+			var parameters = new Int32Array([w,h]);
+			sendMessage(-1, {
+				'funcName': 'SetViewport',
+				'callbackId': 2,
+				'data':	new Uint8Array(parameters.buffer)
+			});
+		}
+		
+		var setViewportRenderArea = function(worker, x, y, w, h) {		
+			var parameters = new Int32Array([x, y, w, h]);
+			sendMessage(worker, {
+				'funcName': 'SetViewportRenderArea',
+				'callbackId': 3,
+				'data':	new Uint8Array(parameters.buffer)
+			});
+		}
+
+		var render = function(worker, renderId, sceneIndex, camera, pixelSize, samplesPerPixel, maxRayBounces) {		
+		
+			function push(parameters, value ) {
+				parameters.push(Math.floor(value));
+				parameters.push(Math.floor((value - Math.floor(value)) * 100000));
+			}
+
+			var parameters = [];
+			parameters.push(renderId);
+			parameters.push(sceneIndex);
+			push(parameters, camera.ey[0]);
+			push(parameters, camera.ey[1]);
+			push(parameters, camera.ey[2]);
+			push(parameters, camera.at[0]);
+			push(parameters, camera.at[1]);
+			push(parameters, camera.at[2]);
+			push(parameters, camera.up[0]);
+			push(parameters, camera.up[1]);
+			push(parameters, camera.up[2]);
+			parameters.push(200);
+			parameters.push(pixelSize);
+			parameters.push(samplesPerPixel);
+			parameters.push(maxRayBounces);
+
+			sendMessage(worker, {
+				'funcName': 'Render',
+				'callbackId': 4,
+				'data':	new Uint8Array((new Int32Array(parameters)).buffer)
+			});
+		}
+		
+		var clear = function(discard) {
+
+			if (discard || discard === undefined) {
+			
+				for (var i = 0; i < offscreenData.data.length; i += 4) {
+					
+					offscreenData.data[i  ] = 0;
+					offscreenData.data[i+1] = 0;
+					offscreenData.data[i+2] = 0;
+				}					
+			}
+
+			var parameters = new Int32Array([]);
+			sendMessage(-1, {
+				'funcName': 'Clear',
+				'callbackId': 5,
+				'data':	new Uint8Array(parameters.buffer)
+			});
+		}
+
+		var rerender = function(discard) {
+		
+			clear(discard);
+
+			renderId++;
+			renderIniTime = performance.now();
+			
+			rendersCompleted = 0;
+			render(-1, renderId, sceneIndex, camera, pixelSize, samplesPerPixel, maxRayBounces);
+
+			log('\n');
+			log('\n  Starting new Rendering');
+			log('\n  ----------------------\n');
+			log('\n  Samples Per Pixel:' + samplesPerPixel);
+			log('\n  Max Ray Bounces:' + maxRayBounces);
+			log('\n\n');
+		}
+
+		var onWorkersReady = function() {
+		
+			if (workersReady !== workersCount) {
+				requestAnimationFrame(onWorkersReady);
+			} else {
+				// Set viewport and render areas.
+				setViewport(canvas.width, canvas.height);
+				
+				var w = canvas.width / 4;
+				var h = canvas.height / 4;
+
+				for (var i = 0; i < workersCount; ++i) {
+
+					var x = w * ((i % 4) | 0x0);
+					var y = h * ((i / 4) | 0x0);
+
+					setWorkerId(i, i);
+					setViewportRenderArea(i, x, y, w, h);
+				}
+				
+				// Render.
+				rerender();
+			}
+		};
+
+		onWorkersReady();
+		
+		// Add Event listeners.
+		var target;
+
+		target = document.getElementById('select-scene');
+		target.onchange = function(event) {
+			sceneIndex = event.target.value | 0x0;			
+			clear();
+			rerender();
+		}
+		
+		target = document.getElementById('select-pixel-size');
+		target.onchange = function(event) {
+			pixelSize = event.target.value | 0x0;			
+			clear();
+			rerender();
+		}
+		
+		target = document.getElementById('select-samples');
+		target.onchange = function(event) {
+			samplesPerPixel = event.target.value | 0x0;
+			clear();
+			rerender();
+		}
+
+		target = document.getElementById('select-bounces');
+		target.onchange = function(event) {
+			maxRayBounces = event.target.value | 0x0;
+			clear();
+			rerender();
+		}
+
+		target = document.getElementById('button-rerender');
+		target.onclick = function(event) {
+			clear();
+			rerender();
+		}
+		
+		// Scene navigation.
+		target = document.getElementById('main-canvas');
+		
+		target.onmouseenter = function(event) {
+			document.getElementById('main-canvas-svg').classList.add('navigate');
+		}.bind(target);
+		
+		target.onmouseleave = function(event) {
+			document.getElementById('main-canvas-svg').classList.remove('navigate');
+		}.bind(target);
+
+		// Utils		
+		format1Space = function(value) {
+			return value < 10 ? ' ' + value : value.toString();
+		}
+		
+		format1Zeros = function(value) {
+			return value < 10 ? '0' + value : value.toString();
+		}
+
+		format3Zeros = function(value) {
+			value = value < 10 ? '0' + value : value.toString();
+			return value < 100 ? '0' + value : value.toString();
+		}
+		
+	</script>
+  </body>
+</html>

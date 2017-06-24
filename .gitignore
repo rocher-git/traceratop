@@ -1,0 +1,9 @@
+
+project/visual-studio-solution/Debug/*
+project/visual-studio-solution/.vs/*
+project/visual-studio-solution/*.sdf
+project/visual-studio-solution/*.suo
+project/visual-studio-solution/*.vcxproj.filters
+project/visual-studio-solution/*.opendb
+emsdk-portable/*
+
